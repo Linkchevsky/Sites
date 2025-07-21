@@ -1,0 +1,696 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор услуг</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <style>
+        /* стили */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+
+        /* 3D модели */
+        .model-viewer-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+            .model-viewer-container h2 {
+                text-align: center;
+                color: #333;
+                margin-bottom: 15px;
+                font-size: 28px;
+            }
+
+        model-viewer {
+            width: 100%;
+            height: 500px;
+            margin: 0 auto;
+            --poster-color: transparent;
+        }
+
+        /* Хидер */
+        .header {
+            background-color: black;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* Переключатели разделов */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            background-color: #ff9300;
+            padding: 15px 0;
+        }
+
+        .tab {
+            padding: 12px 40px;
+            color: white;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+            .tab.active {
+                border-bottom-color: #4CAF50;
+                background-color: #555;
+            }
+
+            .tab:hover:not(.active) {
+                background-color: #555;
+            }
+
+        /* Карусель */
+        .carousel-section {
+            display: none;
+            padding: 40px 0;
+        }
+
+            .carousel-section.active {
+                display: block;
+            }
+
+        .carousel-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+            perspective: 1000px;
+        }
+
+        .carousel {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 700px;
+            position: relative;
+            width: 100%;
+        }
+
+        .carousel-item {
+            position: absolute;
+            width: 500px;
+            height: 600px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            transition: all 0.5s ease;
+            transform-style: preserve-3d;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+
+            .carousel-item img {
+                width: 100%;
+                height: 300px;
+                object-fit: cover;
+                border-radius: 10px;
+                margin-bottom: 25px;
+            }
+
+            .carousel-item h3 {
+                margin: 0 0 20px 0;
+                color: #333;
+                font-size: 24px;
+            }
+
+            .carousel-item p {
+                margin: 0 0 30px 0;
+                color: #666;
+                font-size: 18px;
+                text-align: center;
+                line-height: 1.5;
+            }
+
+            .carousel-item .select-btn {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                padding: 15px 30px;
+                border-radius: 6px;
+                cursor: pointer;
+                margin-top: 20px;
+                transition: all 0.3s;
+                font-size: 18px;
+                font-weight: bold;
+            }
+
+                .carousel-item .select-btn:hover {
+                    background-color: #45a049;
+                    transform: translateY(-2px);
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                }
+
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+
+            .carousel-btn:hover {
+                background-color: rgba(0,0,0,0.9);
+            }
+
+            .carousel-btn.prev {
+                left: 20px;
+            }
+
+            .carousel-btn.next {
+                right: 20px;
+            }
+
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 700px;
+            position: relative;
+            animation: modalopen 0.4s;
+        }
+
+        @keyframes modalopen {
+            from {
+                opacity: 0;
+                transform: translateY(-60px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .close {
+            color: #aaa;
+            position: absolute;
+            right: 30px;
+            top: 20px;
+            font-size: 36px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+            .close:hover,
+            .close:focus {
+                color: #333;
+                text-decoration: none;
+                cursor: pointer;
+            }
+
+        .form-container {
+            padding: 20px 0;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+            .form-header h2 {
+                font-size: 28px;
+                margin-bottom: 15px;
+                color: #333;
+            }
+
+            .form-header p {
+                color: #666;
+                font-size: 18px;
+            }
+
+        .highlight {
+            color: #ff6b00;
+            font-weight: bold;
+        }
+
+        .form-body {
+            padding: 0 15px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -15px;
+        }
+
+        .form-group {
+            flex: 1 1 100%;
+            padding: 0 15px;
+            margin-bottom: 25px;
+        }
+
+        @media (min-width: 480px) {
+            .form-group {
+                flex: 1 1 calc(50% - 30px);
+            }
+        }
+
+        .u-label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 500;
+            color: #444;
+            font-size: 18px;
+        }
+
+        .u-input, .u-textarea {
+            width: 100%;
+            padding: 15px 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 18px;
+            transition: all 0.3s;
+            background-color: #f9f9f9;
+        }
+
+            .u-input:focus, .u-textarea:focus {
+                outline: none;
+                border-color: #ff6b00;
+                box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.2);
+                background-color: #fff;
+            }
+
+        #name-daf4, #email-daf4 {
+            width: calc(100% - 10px);
+        }
+
+        #name-daf4, #email-daf4 {
+            transform: translateX(-20px);
+        }
+
+        #date-input {
+            padding: 15px 20px 12px; 
+        }
+
+        .u-textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .form-submit {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .submit-btn {
+            background-color: #ff6b00;
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            width: 100%;
+            max-width: 350px;
+        }
+
+            .submit-btn:hover {
+                background-color: #e55e00;
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(255, 107, 0, 0.3);
+            }
+
+        .u-form-send-message {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 18px;
+        }
+
+        .u-form-send-success {
+            background-color: #e6f7ee;
+            color: #0a8c5f;
+        }
+
+        .u-form-send-error {
+            background-color: #fde8e8;
+            color: #c33;
+        }
+    </style>
+</head>
+<body>
+    <!-- Хидер -->
+    <div class="header">
+        <h2>Выбор услуг</h2>
+    </div>
+
+    <!-- Переключатели разделов -->
+    <div class="tabs">
+        <div class="tab active" data-tab="body">Кузов</div>
+        <div class="tab" data-tab="interior">Салон</div>
+        <div class="tab" data-tab="glass">Стёкла</div>
+    </div>
+
+    <!-- Раздел Кузов -->
+    <div class="carousel-section active" id="body-section">
+        <div class="carousel-container">
+            <button class="carousel-btn prev">&lt;</button>
+            <div class="carousel" id="body-carousel">
+                <!-- Элементы добавляются через JavaScript -->
+            </div>
+            <button class="carousel-btn next">&gt;</button>
+        </div>
+    </div>
+
+    <!-- Раздел Салон -->
+    <div class="carousel-section" id="interior-section">
+        <div class="carousel-container">
+            <button class="carousel-btn prev">&lt;</button>
+            <div class="carousel" id="interior-carousel">
+                <!-- Элементы добавляются через JavaScript -->
+            </div>
+            <button class="carousel-btn next">&gt;</button>
+        </div>
+    </div>
+
+    <!-- Раздел Стёкла -->
+    <div class="carousel-section" id="glass-section">
+        <div class="carousel-container">
+            <button class="carousel-btn prev">&lt;</button>
+            <div class="carousel" id="glass-carousel">
+                <!-- Элементы добавляются через JavaScript -->
+            </div>
+            <button class="carousel-btn next">&gt;</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно -->
+    <div id="formModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="form-container">
+                <div class="form-header">
+                    <h2>Вы выбрали услугу <span id="selectedOption" class="highlight"></span></h2>
+                    <p>Заполните форму и мы свяжемся с вами в ближайшее время</p>
+                </div>
+
+                <div class="form-body">
+                    <form action="https://forms.nicepagesrv.com/v2/form/process"
+                          class="u-clearfix u-form-spacing-20 u-form-vertical u-inner-form"
+                          style="padding: 0;" source="email" name="form" id="orderForm">
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="name-daf4" class="u-label">Ваше Имя</label>
+                                <input type="text" placeholder="Введите ваше Имя" id="name-daf4" name="name"
+                                       class="u-input" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="phone-dd7b" class="u-label">Ваш номер телефона</label>
+                                <input type="tel" placeholder="+7 (999) 999 9999" id="phone-dd7b" name="Телефон"
+                                       class="u-input" required data-country-code="ru">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="email-daf4" class="u-label">Email</label>
+                                <input type="email" placeholder="Введите ваш Email" id="email-daf4" name="email"
+                                       class="u-input" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="date-input" class="u-label">Желаемая дата</label>
+                                <input type="date" id="date-input" name="date" class="u-input" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="message-daf4" class="u-label">Детали заказа</label>
+                            <textarea rows="4" id="message-daf4" name="message"
+                                      class="u-textarea" required
+                                      placeholder="Уточните детали вашего заказа"></textarea>
+                        </div>
+
+                        <div class="form-submit">
+                            <button type="submit" class="submit-btn">
+                                отправить сообщение
+                            </button>
+                        </div>
+
+                        <input type="hidden" value="" name="recaptchaResponse" wfd-invisible="true">
+                        <input type="hidden" name="formServices" value="ee3ed4bb-a782-06e9-da96-ca03bdef5414">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Контейнер с 3D моделью -->
+    <div class="model-viewer-container">
+        <h2>Пример нашей работы</h2>
+        <model-viewer src="car.glb"
+                      alt="3D модель машины"
+                      ar
+                      auto-rotate
+                      camera-controls
+                      exposure="1.0"
+                      environment-image="neutral"
+                      shadow-intensity="1">
+        </model-viewer>
+    </div>
+
+    <script>
+        // Данные для каруселей
+        const carouselData = {
+            body: [
+                { id: 1, title: "Полировка кузова", description: "Полная полировка кузова автомобиля", img: "https://autoservis55.ru/wp-content/uploads/sites/2/2020/02/polirovka-kuzova.jpg" },
+                { id: 2, title: "Покраска", description: "Локальная покраска элементов кузова", img: "https://autoservis60.ru/wp-content/uploads/sites/6/2020/02/pokraska-avto.jpeg" },
+                { id: 3, title: "Ремонт вмятин", description: "Устранение вмятин без покраски", img: "https://fastdetailing.ru/assets/img/service-vmatiny.jpg" },
+                { id: 4, title: "Антикоррозийная обработка", description: "Защита кузова от коррозии", img: "https://autoservis57.ru/wp-content/uploads/sites/5/2020/11/antikor-min.jpg" },
+                { id: 5, title: "Химчистка кузова", description: "Глубокая очистка кузова", img: "https://m3-spb.ru/static/PageBlockItemEl/1379/photo_2025-02-13_15-33-07_1280_1.jpg" }
+            ],
+            interior: [
+                { id: 6, title: "Химчистка салона", description: "Полная химчистка салона автомобиля", img: "https://www.tonirovanie.ru/images/blog/2021/08/2.jpg" },
+                { id: 7, title: "Перетяжка сидений", description: "Замена обивки сидений", img: "https://eastline-garage.ru/images/cms/thumbs/3d4813c8f910a8fa231ad3912ce2c95b5e8c143b/ifedphoto2017_x6_bw-logo-elg-14_result_400_300_jpg_5_100.jpg" },
+                { id: 8, title: "Чистка кондиционера", description: "Очистка и дезинфекция системы кондиционирования", img: "https://service-vao.ru/images/articles/kondeika/chistka/01-chistka-aerozolyo.jpg" },
+                { id: 9, title: "Замена фильтров", description: "Замена салонного фильтра", img: "https://www.std-shell.ru/upload/iblock/85f/85f96c7570bb9b83e6c018245fc89e97.png" },
+                { id: 10, title: "Защита салона", description: "Защита деталей салона", img: "https://a.d-cd.net/ymLAbHywyTXKm1FSXXxaXwnWd_E-960.jpg" }
+            ],
+            glass: [
+                { id: 11, title: "Замена лобового стекла", description: "Установка нового лобового стекла", img: "https://www.autoglass.ru/assets/content/images/zamena-3.jpg" },
+                { id: 12, title: "Полировка стекол", description: "Удаление мелких царапин на стеклах", img: "https://www.bitstop.ru/upload/medialibrary/aff/AdobeStock_262763167_.webp" },
+                { id: 13, title: "Тонировка", description: "Профессиональная тонировка стекол", img: "https://amdplus.ru/sites/all/themes/amdplus/assets/images/articles/tonirovka/svetopropuskaemost-tonirovki.jpg" },
+                { id: 14, title: "Ремонт сколов", description: "Устранение сколов на лобовом стекле", img: "https://ton174.ru/upload/iblock/efa/efaa4739bf69d7178617bff189f1f045.jpg" },
+                { id: 15, title: "Замена бокового стекла", description: "Установка нового бокового стекла", img: "https://avtosteklaspb.com/wp-content/uploads/2019/11/bokoe-steklo.jpg" }
+            ]
+        };
+
+        // Инициализация каруселей
+        function initCarousels() {
+            for (const section in carouselData) {
+                const carousel = document.getElementById(`${section}-carousel`);
+                const items = carouselData[section];
+
+                // Создание элементов карусели
+                items.forEach((item, index) => {
+                    const carouselItem = document.createElement('div');
+                    carouselItem.className = 'carousel-item';
+                    carouselItem.dataset.id = item.id;
+                    carouselItem.dataset.index = index;
+
+                    carouselItem.innerHTML = `<img src="${item.img}" alt="${item.title}">
+                                                <h3>${item.title}</h3>
+                                                <p>${item.description}</p>
+                                                <button class="select-btn">Выбрать</button>`;
+
+                    carousel.appendChild(carouselItem);
+                });
+
+                positionCarouselItems(`${section}-carousel`);
+            }
+        }
+
+        // Позиционирование элементов карусели
+        function positionCarouselItems(carouselId) {
+            const carousel = document.getElementById(carouselId);
+            const items = carousel.querySelectorAll('.carousel-item');
+            const centerIndex = Math.floor(items.length / 2);
+            const itemWidth = 500;
+            const gap = -200;
+
+            items.forEach((item, index) => {
+                const offset = index - centerIndex;
+                const zIndex = items.length - Math.abs(offset);
+                const scale = 1 - Math.abs(offset) * 0.1;
+                const opacity = 1 - Math.abs(offset) * 0.3;
+
+
+                let translateX = offset * (itemWidth + gap);
+
+
+                if (items.length % 2 === 0) {
+                    translateX = (offset - 0.5) * (itemWidth + gap);
+                }
+
+                item.style.transform = `translateX(${translateX}px) scale(${scale})`;
+                item.style.zIndex = zIndex;
+                item.style.opacity = opacity;
+
+
+                if (offset === 0 || (items.length % 2 === 0 && offset === -0.5)) {
+                    item.classList.add('center');
+                } else {
+                    item.classList.remove('center');
+                }
+            });
+        }
+
+
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    document.querySelectorAll('.carousel-section').forEach(section => {
+                        section.classList.remove('active');
+                    });
+
+                    const sectionId = `${tab.dataset.tab}-section`;
+                    document.getElementById(sectionId).classList.add('active');
+                });
+            });
+        }
+
+        // Навигация по карусели
+        function setupCarouselNavigation() {
+            document.querySelectorAll('.carousel-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const carouselId = this.parentElement.querySelector('.carousel').id;
+                    const carousel = document.getElementById(carouselId);
+                    const items = carousel.querySelectorAll('.carousel-item');
+                    const isNext = this.classList.contains('next');
+
+                    // Перемещение элементов
+                    if (isNext) {
+                        // Перемещение первого элемента в конец
+                        const firstItem = items[0];
+                        firstItem.dataset.index = parseInt(items[items.length - 1].dataset.index) + 1;
+                        carousel.appendChild(firstItem);
+                    } else {
+                        // Перемещение последнего элемента в конец
+                        const lastItem = items[items.length - 1];
+                        lastItem.dataset.index = parseInt(items[0].dataset.index) - 1;
+                        carousel.insertBefore(lastItem, items[0]);
+                    }
+
+                    positionCarouselItems(carouselId);
+                });
+            });
+        }
+
+        // Модальное окно
+        function setupModal() {
+            const modal = document.getElementById('formModal');
+            const closeBtn = document.querySelector('.close');
+            const selectedOptionSpan = document.getElementById('selectedOption');
+            const dateInput = document.getElementById('date-input');
+
+            function setDefaultDate() {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                dateInput.value = `${year}-${month}-${day}`;
+
+                dateInput.min = `${year}-${month}-${day}`;
+            }
+
+            // Обработчики для кнопок выбора
+            document.addEventListener('click', function (e) {
+                if (e.target.classList.contains('select-btn')) {
+                    const item = e.target.closest('.carousel-item');
+                    const title = item.querySelector('h3').textContent;
+                    selectedOptionSpan.textContent = title;
+
+                    setDefaultDate();
+                    modal.style.display = 'block';
+                }
+            });
+
+            // Закрытие модального окна
+            closeBtn.onclick = function () {
+                modal.style.display = 'none';
+            }
+
+            window.onclick = function (event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
+
+            // Обработка формы
+            document.getElementById('orderForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                alert('Форма отправлена!');
+                modal.style.display = 'none';
+            });
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function () {
+            initCarousels();
+            setupTabs();
+            setupCarouselNavigation();
+            setupModal();
+        });
+    </script>
+</body>
+</html>
